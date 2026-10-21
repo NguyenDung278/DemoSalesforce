@@ -11,11 +11,22 @@
             <!-- D.1 bước 1: thông tin đơn -->
             <div class="slds-grid slds-wrap slds-m-bottom_small">
                 <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-3 slds-p-vertical_xx-small">Số đơn: <b>{info.orderNumber}</b></div>
-                <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-3 slds-p-vertical_xx-small">Khách hàng: <b>{info.customerName}</b></div>
-                <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-3 slds-p-vertical_xx-small">SĐT: {info.customerPhone}</div>
-                <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-3 slds-p-vertical_xx-small">Ngày mua: {purchaseDateText}</div>
-                <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-3 slds-p-vertical_xx-small">Ngày giao: {deliveryDateText}</div>
-                <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-3 slds-p-vertical_xx-small">Cửa hàng: {info.storeName}</div>
+                
+                <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-3 slds-p-vertical_xx-small slds-p-right_small">
+                    <lightning-input label="Khách hàng" value={info.customerName} read-only></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-3 slds-p-vertical_xx-small slds-p-right_small">
+                    <lightning-input label="SĐT" value={info.customerPhone} read-only></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-3 slds-p-vertical_xx-small slds-p-right_small">
+                    <lightning-input label="Ngày mua" value={purchaseDateText} read-only></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-3 slds-p-vertical_xx-small slds-p-right_small">
+                    <lightning-input label="Ngày giao" value={deliveryDateText} read-only></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-3 slds-p-vertical_xx-small slds-p-right_small">
+                    <lightning-input label="Cửa hàng" value={info.storeName} read-only></lightning-input>
+                </div>
             </div>
 
             <!-- D.1 bước 2, 3: bảng sản phẩm; dòng không trả được thì mờ, kèm lý do, không nhập được -->

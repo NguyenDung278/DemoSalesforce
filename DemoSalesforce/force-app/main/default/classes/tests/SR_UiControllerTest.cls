@@ -95,7 +95,7 @@ private class SR_UiControllerTest {
             SR_ReturnRequestService.createRequests(new List<SR_DTO.CreateRequest>{
                 SR_TestDataFactory.counterRequest(o, 'DEFECT', 'SEALED', 1) });
         }
-        SR_ApprovalUiController.PageResult page = SR_ApprovalUiController.getQueue(
+        SR_ApprovalQueueService.PageResult page = SR_ApprovalUiController.getQueue(
             JSON.serialize(new Map<String, Object>{ 'onlyMine' => true }));
         Assert.areEqual(1, page.total);
 
@@ -112,11 +112,11 @@ private class SR_UiControllerTest {
         Id requestId = createSmallCounterRequest();
         String code = [SELECT Name FROM Return_Request__c WHERE Id = :requestId].Name;
 
-        SR_PortalController.LookupResult wrong = SR_PortalController.lookup(code, '0000');
+        SR_PortalService.LookupResult wrong = SR_PortalController.lookup(code, '0000');
         Assert.isFalse(wrong.found);
         Assert.areEqual(System.Label.SR_MSG_40, wrong.message);
 
-        SR_PortalController.LookupResult ok = SR_PortalController.lookup(code, '4567');
+        SR_PortalService.LookupResult ok = SR_PortalController.lookup(code, '4567');
         Assert.isTrue(ok.found);
         Assert.isFalse(ok.history.isEmpty());
     }
