@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+    <labels>
+        <fullName>SR_MSG_01</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-01 Tạo yêu cầu thành công</shortDescription>
+        <value>Đã tạo yêu cầu {0}. Số tiền hoàn dự kiến {1}đ.</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_02</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-02 Quá hạn đổi trả</shortDescription>
+        <value>Sản phẩm {0} đã quá hạn đổi trả (hạn đến {1}).</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_03</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-03 Ngành hàng không được đổi trả</shortDescription>
+        <value>Ngành hàng {0} không áp dụng đổi trả.</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_04</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-04 Vượt số lượng</shortDescription>
+        <value>Số lượng trả của {0} vượt quá số lượng còn được trả ({1}).</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_05</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-05 Tỷ lệ hoàn 0%</shortDescription>
+        <value>Sản phẩm {0} với lý do "{1}" và tình trạng "{2}" không được hoàn tiền.</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_06</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-06 Chưa chọn sản phẩm</shortDescription>
+        <value>Vui lòng chọn ít nhất 1 sản phẩm để trả.</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_10</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-10 Tự duyệt yêu cầu mình tạo</shortDescription>
+        <value>Bạn không thể duyệt yêu cầu do chính mình tạo.</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_11</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-11 Kết quả duyệt hàng loạt</shortDescription>
+        <value>Đã xử lý {0}/{1} yêu cầu. Không xử lý được: {2}.</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_12</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-12 Từ chối thiếu lý do</shortDescription>
+        <value>Vui lòng nhập lý do từ chối.</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_13</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-13 Người khác đã xử lý trước</shortDescription>
+        <value>Yêu cầu {0} vừa được người khác cập nhật. Vui lòng tải lại.</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_20</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-20 Chuyển trạng thái không hợp lệ</shortDescription>
+        <value>Không thể chuyển yêu cầu từ {0} sang {1}.</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_21</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-21 Không đạt thiếu ghi chú</shortDescription>
+        <value>Vui lòng nhập ghi chú cho sản phẩm không đạt kiểm định.</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_22</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-22 Còn dòng chưa kiểm định</shortDescription>
+        <value>Vui lòng ghi kết quả kiểm định cho tất cả sản phẩm.</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_30</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-30 Hoàn tiền thành công</shortDescription>
+        <value>Yêu cầu {0} đã hoàn tiền thành công {1}đ.</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_31</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-31 Hoàn tiền lỗi</shortDescription>
+        <value>Yêu cầu {0} hoàn tiền không thành công, đã chuyển Kế toán xử lý.</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_40</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-40 Portal không khớp mã hoặc SĐT</shortDescription>
+        <value>Không tìm thấy yêu cầu phù hợp. Vui lòng kiểm tra lại mã yêu cầu và số điện thoại.</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_41</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-41 Portal nhập sai quá nhiều lần</shortDescription>
+        <value>Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.</value>
+    </labels>
+    <labels>
+        <fullName>SR_MSG_90</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>MSG-90 Lỗi không mong đợi</shortDescription>
+        <value>Đã có lỗi xảy ra. Vui lòng thử lại hoặc liên hệ bộ phận hỗ trợ (mã lỗi {0}).</value>
+    </labels>
+    <labels>
+        <fullName>SR_ERR_ORDER_NOT_FOUND</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Không tìm thấy đơn hoặc SĐT không khớp</shortDescription>
+        <value>Không tìm thấy đơn hàng hoặc số điện thoại không khớp với đơn.</value>
+    </labels>
+    <labels>
+        <fullName>SR_ERR_NOT_APPROVER</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Không phải người được giao duyệt</shortDescription>
+        <value>Bạn không phải người được giao duyệt yêu cầu {0}.</value>
+    </labels>
+</CustomLabels>
