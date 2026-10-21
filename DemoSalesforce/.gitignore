@@ -51,6 +51,7 @@ $RECYCLE.BIN/
 **/objects/
 **/staticresources/
 
+<<<<<<< HEAD
 # JWT private keys and certificates
 server.key
 server.pass.key
@@ -58,3 +59,7 @@ server.csr
 server.crt
 *.pem
 *.key
+=======
+# Claude Code
+.claude/
+>>>>>>> 8684acc (feat: Add SR Portal Lookup and My Requests components)
