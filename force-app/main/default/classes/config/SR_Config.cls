@@ -143,7 +143,7 @@ public with sharing class SR_Config {
         refundRateCache = null;
     }
 
-    private static SR_Setting__mdt setting() {
+    public static SR_Setting__mdt setting() {
         if (settingCache == null) {
             settingCache = provider.getSetting(DEFAULT_SETTING);
             validateSetting(settingCache);
