@@ -48,13 +48,13 @@ for (OrderItem oi : [
 //     };
 //     requests.add((SR_DTO.CreateRequest) JSON.deserialize(JSON.serialize(body), SR_DTO.CreateRequest.class));
 // }
-// List<Object> results = SR_ReturnRequestService.createRequests(requests);
-// for (Integer i = 0; i < results.size(); i++) {
-//     Map<String, Object> r = (Map<String, Object>) JSON.deserializeUntyped(JSON.serialize(results[i]));
-//     if (r.get('success') == false) {
-//         System.debug('SEED | LỖI tạo ' + (String) plan[i][5] + ': ' + JSON.serialize(r).left(500));
-//     }
-// }
+List<Object> results = SR_ReturnRequestService.createRequests(requests);
+for (Integer i = 0; i < results.size(); i++) {
+    Map<String, Object> r = (Map<String, Object>) JSON.deserializeUntyped(JSON.serialize(results[i]));
+    if (r.get('success') == false) {
+        System.debug('SEED | LỖI tạo ' + (String) plan[i][5] + ': ' + JSON.serialize(r).left(500));
+    }
+}
 
 // Yêu cầu laptop: lùi thời điểm gửi duyệt về 30 giờ trước → quá hạn 24 giờ (BR-11)
 List<Return_Request__c> overdue = [
