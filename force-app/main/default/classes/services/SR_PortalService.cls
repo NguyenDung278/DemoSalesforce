@@ -108,9 +108,9 @@ public without sharing class SR_PortalService {
         return res;
     }
 
-    // private static Boolean isLocked(String code) {
-    //     SR_Setting__mdt s = SR_Config.setting();
-    //     Datetime since = SR_LookupAttemptDomain.lockWindowStart(s, System.now());
-    //     return SR_LookupAttemptDomain.isLocked(SR_LookupAttemptSelector.countByKeySince(code, since), s);
-    // }
+    private static Boolean isLocked(String code) {
+        SR_Setting__mdt s = SR_Config.setting();
+        Datetime since = SR_LookupAttemptDomain.lockWindowStart(s, System.now());
+        return SR_LookupAttemptDomain.isLocked(SR_LookupAttemptSelector.countByKeySince(code, since), s);
+    }
 }
