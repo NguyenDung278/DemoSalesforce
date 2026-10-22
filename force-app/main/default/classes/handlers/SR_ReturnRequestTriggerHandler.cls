@@ -25,7 +25,7 @@ public with sharing class SR_ReturnRequestTriggerHandler {
         List<Return_Request_History__c> histories = new List<Return_Request_History__c>();
         for (Return_Request__c requestRecord : newRecords) {
             histories.add(new Return_Request_History__c(
-                Request__c = requestRecord.Id,
+                Return_Request__c = requestRecord.Id,
                 From_Status__c = null,
                 To_Status__c = requestRecord.Status__c,
                 Changed_By__c = UserInfo.getUserId(),

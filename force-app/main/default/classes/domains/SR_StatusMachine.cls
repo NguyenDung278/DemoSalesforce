@@ -15,6 +15,8 @@ public with sharing class SR_StatusMachine {
     private static final String REQUEST_NOT_FOUND = 'REQUEST_NOT_FOUND';
     private static final String DUPLICATE_REQUEST = 'DUPLICATE_REQUEST';
 
+    private static Map<String, String> statusLabelsByValue;
+
     private static final Map<String, Set<String>> TRANSITIONS = buildTransitions();
 
     public static List<SR_ActionResultDTO> change(List<SR_StatusChangeDTO> changes) {
@@ -105,7 +107,7 @@ public with sharing class SR_StatusMachine {
                 Return_Request__c = requestId,
                 From_Status__c = fromStatus,
                 To_Status__c = toStatus,
-                LastModifiedById = UserInfo.getUserId(),
+                Changed_By__c = UserInfo.getUserId(),
                 Changed_At__c = System.now(),
                 Note__c = input.note,
                 Correlation_Id__c = input.correlationId

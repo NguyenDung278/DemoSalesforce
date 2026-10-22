@@ -37,19 +37,19 @@ private class SR_ReturnUiControllerTest {
         });
     }
 
-    // @IsTest
-    // static void loadsPreviewsAndCreates() {
-    //     Id orderId = [SELECT Id FROM Order LIMIT 1].Id;
-    //     String draft = draftJson();
-    //     Test.startTest();
-    //     SR_DTO.ReturnableInfo info = SR_ReturnUiController.getReturnableLines(orderId);
-    //     SR_DTO.PreviewResult preview = SR_ReturnUiController.previewLevel(draft);
-    //     SR_DTO.CreateResult result = SR_ReturnUiController.createFromCounter(draft);
-    //     Test.stopTest();
-    //     Assert.isNotNull(info, 'Phải trả thông tin đơn');
-    //     Assert.isNotNull(preview, 'Phải trả kết quả tính trước');
-    //     Assert.isNotNull(result, 'Phải trả kết quả tạo yêu cầu');
-    // }
+    @IsTest
+    static void loadsPreviewsAndCreates() {
+        Id orderId = [SELECT Id FROM Order LIMIT 1].Id;
+        String draft = draftJson();
+        Test.startTest();
+        SR_DTO.ReturnableInfo info = SR_ReturnUiController.getReturnableLines(orderId);
+        SR_DTO.PreviewResult preview = SR_ReturnUiController.previewLevel(draft);
+        SR_DTO.CreateResult result = SR_ReturnUiController.createFromCounter(draft);
+        Test.stopTest();
+        Assert.isNotNull(info, 'Phải trả thông tin đơn');
+        Assert.isNotNull(preview, 'Phải trả kết quả tính trước');
+        Assert.isNotNull(result, 'Phải trả kết quả tạo yêu cầu');
+    }
 
     @IsTest
     static void badInputGivesReadableError() {

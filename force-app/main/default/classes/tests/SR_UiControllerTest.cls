@@ -20,91 +20,91 @@ private class SR_UiControllerTest {
         }
     }
 
-    // private static Id createSmallCounterRequest() {
-    //     Order o = SR_TestDataFactory.orderWithSku('AF-PH-5L');
-    //     OrderItem oi = [SELECT Id FROM OrderItem WHERE OrderId = :o.Id LIMIT 1];
-    //     String body = JSON.serialize(new Map<String, Object>{
-    //         'orderId' => o.Id,
-    //         'lines' => new List<Object>{ new Map<String, Object>{
-    //             'orderItemId' => oi.Id, 'quantity' => 1, 'reason' => 'NOT_SATISFIED', 'condition' => 'OPENED'
-    //         } }
-    //     });
-    //     SR_DTO.CreateResult res;
-    //     System.runAs(SR_TestDataFactory.userByAlias('srstaff')) {
-    //         res = SR_ReturnUiController.createFromCounter(body);
-    //     }
-    //     Assert.isTrue(res.success, res.message);
-    //     return res.requestId;
-    // }
+    private static Id createSmallCounterRequest() {
+        Order o = SR_TestDataFactory.orderWithSku('AF-PH-5L');
+        OrderItem oi = [SELECT Id FROM OrderItem WHERE OrderId = :o.Id LIMIT 1];
+        String body = JSON.serialize(new Map<String, Object>{
+            'orderId' => o.Id,
+            'lines' => new List<Object>{ new Map<String, Object>{
+                'orderItemId' => oi.Id, 'quantity' => 1, 'reason' => 'NOT_SATISFIED', 'condition' => 'OPENED'
+            } }
+        });
+        SR_DTO.CreateResult res;
+        System.runAs(SR_TestDataFactory.userByAlias('srstaff')) {
+            res = SR_ReturnUiController.createFromCounter(body);
+        }
+        Assert.isTrue(res.success, res.message);
+        return res.requestId;
+    }
 
     // D.1: điện thoại quá hạn bị khóa, nồi chiên trả được
-    // @IsTest
-    // static void returnableLinesShowBlockedProducts() {
-    //     Order phoneOrder = SR_TestDataFactory.orderWithSku('PH-X');
-    //     Order fryerOrder = SR_TestDataFactory.orderWithSku('AF-PH-5L');
-    //     System.runAs(SR_TestDataFactory.userByAlias('srstaff')) {
-    //         SR_DTO.ReturnableInfo phone = SR_ReturnUiController.getReturnableLines(phoneOrder.Id);
-    //         SR_DTO.ReturnableInfo fryer = SR_ReturnUiController.getReturnableLines(fryerOrder.Id);
-    //         Assert.isFalse(phone.lines[0].returnable);
-    //         Assert.isNotNull(phone.lines[0].blockReason);
-    //         Assert.isTrue(fryer.lines[0].returnable);
-    //         Assert.areEqual(80, fryer.rates.get('NOT_SATISFIED|OPENED').intValue());
-    //     }
-    // }
+    @IsTest
+    static void returnableLinesShowBlockedProducts() {
+        Order phoneOrder = SR_TestDataFactory.orderWithSku('PH-X');
+        Order fryerOrder = SR_TestDataFactory.orderWithSku('AF-PH-5L');
+        System.runAs(SR_TestDataFactory.userByAlias('srstaff')) {
+            SR_DTO.ReturnableInfo phone = SR_ReturnUiController.getReturnableLines(phoneOrder.Id);
+            SR_DTO.ReturnableInfo fryer = SR_ReturnUiController.getReturnableLines(fryerOrder.Id);
+            Assert.isFalse(phone.lines[0].returnable);
+            Assert.isNotNull(phone.lines[0].blockReason);
+            Assert.isTrue(fryer.lines[0].returnable);
+            Assert.areEqual(80, fryer.rates.get('NOT_SATISFIED|OPENED').intValue());
+        }
+    }
 
     // D.3: kiểm định Đạt → chuyển sang hoàn tiền (hoặc đã hoàn tất nếu PayHub giả lập trả SUCCESS)
-    // @IsTest
-    // static void inspectionMovesRequestToRefund() {
-    //     Id requestId = createSmallCounterRequest();
-    //     SR_DTO.InspectionData data = SR_ReturnUiController.getInspectionData(requestId);
-    //     Assert.isTrue(data.canInspect);
+    @IsTest
+    static void inspectionMovesRequestToRefund() {
+        Id requestId = createSmallCounterRequest();
+        SR_DTO.InspectionData data = SR_ReturnUiController.getInspectionData(requestId);
+        Assert.isTrue(data.canInspect);
 
-    //     String results = JSON.serialize(new List<Object>{ new Map<String, Object>{
-    //         'lineId' => data.lines[0].lineId, 'result' => 'PASSED', 'actualCondition' => 'OPENED', 'note' => ''
-    //     } });
-    //     Test.setMock(HttpCalloutMock.class, new PayHubOk());
-    //     Test.startTest();
-    //     SR_ReturnUiController.completeInspection(requestId, results);
-    //     Test.stopTest();
+        String results = JSON.serialize(new List<Object>{ new Map<String, Object>{
+            'lineId' => data.lines[0].lineId, 'result' => 'PASSED', 'actualCondition' => 'OPENED', 'note' => ''
+        } });
+        Test.setMock(HttpCalloutMock.class, new PayHubOk());
+        Test.startTest();
+        SR_ReturnUiController.completeInspection(requestId, results);
+        Test.stopTest();
 
-    //     String status = [SELECT Status__c FROM Return_Request__c WHERE Id = :requestId].Status__c;
-    //     Assert.isTrue(status == 'REFUND_PROCESSING' || status == 'COMPLETED', status);
-    // }
+        String status = [SELECT Status__c FROM Return_Request__c WHERE Id = :requestId].Status__c;
+        Assert.isTrue(status == 'REFUND_PROCESSING' || status == 'COMPLETED', status);
+    }
 
     // D.3: Không đạt mà thiếu ghi chú → MSG-21
-    // @IsTest
-    // static void failedLineNeedsNote() {
-    //     Id requestId = createSmallCounterRequest();
-    //     SR_DTO.InspectionData data = SR_ReturnUiController.getInspectionData(requestId);
-    //     String results = JSON.serialize(new List<Object>{ new Map<String, Object>{
-    //         'lineId' => data.lines[0].lineId, 'result' => 'FAILED', 'actualCondition' => 'USED', 'note' => ''
-    //     } });
-    //     try {
-    //         SR_ReturnUiController.completeInspection(requestId, results);
-    //         Assert.fail('Phải báo MSG-21');
-    //     } catch (AuraHandledException e) {
-    //         Assert.areEqual(System.Label.SR_MSG_21, e.getMessage());
-    //     }
-    // }
+    @IsTest
+    static void failedLineNeedsNote() {
+        Id requestId = createSmallCounterRequest();
+        SR_DTO.InspectionData data = SR_ReturnUiController.getInspectionData(requestId);
+        String results = JSON.serialize(new List<Object>{ new Map<String, Object>{
+            'lineId' => data.lines[0].lineId, 'result' => 'FAILED', 'actualCondition' => 'USED', 'note' => ''
+        } });
+        try {
+            SR_ReturnUiController.completeInspection(requestId, results);
+            Assert.fail('Phải báo MSG-21');
+        } catch (AuraHandledException e) {
+            Assert.areEqual(System.Label.SR_MSG_21, e.getMessage());
+        }
+    }
 
     // D.2: QLV (user chạy test) thấy yêu cầu 25tr trong hàng chờ và duyệt được
-    // @IsTest
-    // static void approvalQueueListsAndApproves() {
-    //     Order o = SR_TestDataFactory.orderWithSku('LT-Y');
-    //     System.runAs(SR_TestDataFactory.userByAlias('srstaff')) {
-    //         SR_ReturnRequestService.createRequests(new List<SR_DTO.CreateRequest>{
-    //             SR_TestDataFactory.counterRequest(o, 'DEFECT', 'SEALED', 1) });
-    //     }
-    //     SR_ApprovalQueueService.PageResult page = SR_ApprovalUiController.getQueue(
-    //         JSON.serialize(new Map<String, Object>{ 'onlyMine' => true }));
-    //     Assert.areEqual(1, page.total);
+    @IsTest
+    static void approvalQueueListsAndApproves() {
+        Order o = SR_TestDataFactory.orderWithSku('LT-Y');
+        System.runAs(SR_TestDataFactory.userByAlias('srstaff')) {
+            SR_ReturnRequestService.createRequests(new List<SR_DTO.CreateRequest>{
+                SR_TestDataFactory.counterRequest(o, 'DEFECT', 'SEALED', 1) });
+        }
+        SR_ApprovalQueueService.PageResult page = SR_ApprovalUiController.getQueue(
+            JSON.serialize(new Map<String, Object>{ 'onlyMine' => true }));
+        Assert.areEqual(1, page.total);
 
-    //     String items = JSON.serialize(new List<Object>{ new Map<String, Object>{
-    //         'requestId' => page.rows[0].id, 'lastModified' => page.rows[0].lastModified
-    //     } });
-    //     SR_DTO.DecisionResult d = SR_ApprovalUiController.decide(items, true, null);
-    //     Assert.areEqual(1, d.succeeded, d.summary);
-    // }
+        String items = JSON.serialize(new List<Object>{ new Map<String, Object>{
+            'requestId' => page.rows[0].id, 'lastModified' => page.rows[0].lastModified
+        } });
+        SR_DTO.DecisionResult d = SR_ApprovalUiController.decide(items, true, null);
+        Assert.areEqual(1, d.succeeded, d.summary);
+    }
 
     // D.4: sai 4 số cuối → MSG-40; đúng → thấy trạng thái + lịch sử, không có số tiền
     @IsTest
