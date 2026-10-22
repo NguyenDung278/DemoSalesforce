@@ -102,10 +102,10 @@ public with sharing class SR_StatusMachine {
             }
 
             histories.add(new Return_Request_History__c(
-                Request__c = requestId,
+                Return_Request__c = requestId,
                 From_Status__c = fromStatus,
                 To_Status__c = toStatus,
-                Changed_By__c = UserInfo.getUserId(),
+                LastModifiedById = UserInfo.getUserId(),
                 Changed_At__c = System.now(),
                 Note__c = input.note,
                 Correlation_Id__c = input.correlationId
