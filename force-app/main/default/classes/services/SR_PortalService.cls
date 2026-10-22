@@ -95,7 +95,7 @@ public without sharing class SR_PortalService {
         for (Return_Request_Line__c l : r.Return_Request_Lines__r) {
             ProductItem pi = new ProductItem();
             pi.key = l.Id;
-            pi.name = l.Product__r?.Name;
+            pi.name = l.Product2__r?.Name;
             pi.quantity = l.Quantity__c;
             res.products.add(pi);
         }
