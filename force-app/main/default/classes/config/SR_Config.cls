@@ -194,29 +194,6 @@ public with sharing class SR_Config {
         }
     }
 
-    private static void loadRefundRates() {
-        if (refundRateCache != null) {
-            return;
-        }
-        refundRateCache = new Map<String, Decimal>();
-        for (SR_Refund_Rate__mdt item : provider.getRefundRates().values()) {
-            if (item.Active__c != true) {
-                continue;
-            }
-            if (
-                String.isBlank(item.Reason__c) ||
-                String.isBlank(item.Condition__c) ||
-                item.Refund_Rate__c == null
-            ) {
-                throw configurationError('Active refund-rate metadata is incomplete.');
-            }
-            refundRateCache.put(
-                compositeKey(item.Reason__c, item.Condition__c),
-                item.Refund_Rate__c
-            );
-        }
-    }
-
     private static String compositeKey(String firstValue, String secondValue) {
         return normalize(firstValue) + KEY_SEPARATOR + normalize(secondValue);
     }
