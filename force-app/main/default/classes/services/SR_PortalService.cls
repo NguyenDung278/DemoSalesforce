@@ -85,14 +85,14 @@ public without sharing class SR_PortalService {
         res.found = true;
         res.requestNumber = r.Name;
         res.statusLabel = SR_StatusMachine.labelOf(r.Status__c);
-        for (Return_Request_History__c h : r.Histories__r) {
+        for (Return_Request_History__c h : r.Return_Request_Histories__r) {
             HistoryItem hi = new HistoryItem();
             hi.key = h.Id;
             hi.statusLabel = SR_StatusMachine.labelOf(h.To_Status__c);
             hi.changedAt = h.Changed_At__c.format('dd/MM/yyyy HH:mm', 'Asia/Ho_Chi_Minh');
             res.history.add(hi);
         }
-        for (Return_Request_Line__c l : r.Lines__r) {
+        for (Return_Request_Line__c l : r.Return_Request_Lines__r) {
             ProductItem pi = new ProductItem();
             pi.key = l.Id;
             pi.name = l.Product__r?.Name;
@@ -108,9 +108,9 @@ public without sharing class SR_PortalService {
         return res;
     }
 
-    private static Boolean isLocked(String code) {
-        SR_Setting__mdt s = SR_Config.setting();
-        Datetime since = SR_LookupAttemptDomain.lockWindowStart(s, System.now());
-        return SR_LookupAttemptDomain.isLocked(SR_LookupAttemptSelector.countByKeySince(code, since), s);
-    }
+    // private static Boolean isLocked(String code) {
+    //     SR_Setting__mdt s = SR_Config.setting();
+    //     Datetime since = SR_LookupAttemptDomain.lockWindowStart(s, System.now());
+    //     return SR_LookupAttemptDomain.isLocked(SR_LookupAttemptSelector.countByKeySince(code, since), s);
+    // }
 }

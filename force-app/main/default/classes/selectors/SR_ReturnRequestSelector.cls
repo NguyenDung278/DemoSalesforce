@@ -42,8 +42,8 @@ public inherited sharing class SR_ReturnRequestSelector {
     public static Return_Request__c selectPortalDetail(Id requestId) {
         return [
             SELECT Id, Name, Status__c,
-                   (SELECT Id, Product__r.Name, Quantity__c FROM Lines__r ORDER BY Name),
-                   (SELECT Id, To_Status__c, Changed_At__c FROM Histories__r ORDER BY Changed_At__c, Name)
+                   (SELECT Id, Product__r.Name, Quantity__c FROM Return_Request_Lines__r ORDER BY Name),
+                   (SELECT Id, To_Status__c, Changed_At__c FROM Return_Request_Histories__r ORDER BY Changed_At__c, Name)
             FROM Return_Request__c WHERE Id = :requestId
         ];
     }
