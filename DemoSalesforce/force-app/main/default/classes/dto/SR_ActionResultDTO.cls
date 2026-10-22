@@ -1,6 +1,7 @@
 public inherited sharing class SR_ActionResultDTO {
     @AuraEnabled
     public Boolean success { get; set; }
+    
 
     @AuraEnabled
     public Id recordId { get; set; }
