@@ -1,0 +1,123 @@
+/**
+ * Selector cho Return_Request__c: gom truy vấn yêu cầu trả hàng của màn hình duyệt (D.2) và Customer Portal (D.4).
+ *  - "inherited sharing": chạy theo sharing của class gọi.
+ *  - Truy vấn "của tôi" cho khách đăng nhập LUÔN áp sharing (USER_MODE trong class con with sharing SharedWithMe),
+ *    vì không có điều kiện lọc theo khách: chỉ Sharing Set giới hạn kết quả.
+ *  - Phân trang bằng Database.PaginationCursor thay cho OFFSET (OFFSET chỉ tới 2000 dòng). Mỗi lần gọi tạo cursor
+ *    mới nên luôn thấy dữ liệu mới nhất. Dùng PaginationCursor (cursor cho UI, 200.000 cursor/ngày) thay vì
+ *    Database.Cursor (10.000 cursor/ngày, dùng chung với xử lý nền).
+ * Owner: Dev C
+ */
+public inherited sharing class SR_ReturnRequestSelector {
+
+    // Một trang kết quả: tổng số dòng khớp điều kiện và các dòng của trang
+    public class RecordPage {
+        public Integer total = 0;
+        public List<Return_Request__c> records = new List<Return_Request__c>();
+    }
+
+    // Điều kiện lọc hàng chờ duyệt (D.2). Service điền sẵn giá trị mặc định trước khi gọi.
+    public class QueueCriteria {
+        public String status;
+        public Date fromDate;                  // từ 00:00 ngày này
+        public Date toDate;                    // đến hết ngày này
+        public Id storeId;                     // null = mọi cửa hàng
+        public Id approverId;                  // null = mọi người duyệt
+        public Schema.SObjectField orderBy;
+        public Boolean descending = false;
+        public Integer pageSize;
+        public Integer position = 0;           // vị trí dòng đầu trang, tính từ 0
+    }
+
+    // ---------- Portal: khách vãng lai (sharing theo class gọi) ----------
+
+    // Kèm SĐT của khách để đối chiếu 4 số cuối
+    public static List<Return_Request__c> selectByNameWithPhone(String requestNumber) {
+        return [
+            SELECT Id, Account__r.Phone FROM Return_Request__c WHERE Name = :requestNumber LIMIT 1
+        ];
+    }
+
+    // Chỉ các field Portal được hiện (BR-17): trạng thái, lịch sử, tên + số lượng sản phẩm
+    public static Return_Request__c selectPortalDetail(Id requestId) {
+        return [
+            SELECT Id, Name, Status__c,
+                   (SELECT Id, Product__r.Name, Quantity__c FROM Lines__r ORDER BY Name),
+                   (SELECT Id, To_Status__c, Changed_At__c FROM Histories__r ORDER BY Changed_At__c, Name)
+            FROM Return_Request__c WHERE Id = :requestId
+        ];
+    }
+
+    // ---------- Portal: khách đăng nhập (luôn with sharing) ----------
+
+    public static RecordPage selectSharedWithMe(Integer pageSize, Integer position) {
+        return new SharedWithMe().page(pageSize, position);
+    }
+
+    public static Boolean isSharedWithMe(Id requestId) {
+        return new SharedWithMe().contains(requestId);
+    }
+
+    // ---------- Màn hình duyệt: USER_MODE, chỉ thấy yêu cầu và field được phép xem (BR-16) ----------
+
+    public static RecordPage selectApprovalQueue(QueueCriteria c) {
+        Map<String, Object> binds = new Map<String, Object>();
+        String soql = 'SELECT Id, Name, Status__c, Account__r.Name, Account__r.Risk_Flag__c, Store__r.Name, Channel__c, ' +
+            'Estimated_Refund__c, Approval_Level__c, Assigned_Approver__r.Name, Submitted_At__c, ' +
+            'Approval_Due_At__c, LastModifiedDate FROM Return_Request__c' + queueWhere(c, binds) +
+            ' ORDER BY ' + c.orderBy.getDescribe().getName() + (c.descending ? ' DESC' : ' ASC') + ' NULLS LAST' +
+            maxRows();
+        return fetchPage(Database.getPaginationCursorWithBinds(soql, binds, AccessLevel.USER_MODE), c.position, c.pageSize);
+    }
+
+    private static String queueWhere(QueueCriteria c, Map<String, Object> binds) {
+        binds.put('status', c.status);
+        binds.put('fromDt', Datetime.newInstance(c.fromDate, Time.newInstance(0, 0, 0, 0)));
+        binds.put('toDt', Datetime.newInstance(c.toDate.addDays(1), Time.newInstance(0, 0, 0, 0)));
+        String whereClause = ' WHERE Status__c = :status AND CreatedDate >= :fromDt AND CreatedDate < :toDt';
+        if (c.storeId != null) {
+            whereClause += ' AND Store__c = :storeId';
+            binds.put('storeId', c.storeId);
+        }
+        if (c.approverId != null) {
+            whereClause += ' AND Assigned_Approver__c = :approverId';
+            binds.put('approverId', c.approverId);
+        }
+        return whereClause;
+    }
+
+    // ---------- Phân trang ----------
+
+    // Một PaginationCursor chứa tối đa 100.000 dòng: giới hạn sẵn để danh sách quá dài không làm lỗi trang
+    private static String maxRows() {
+        return ' LIMIT ' + Limits.getLimitApexPaginationCursorRows();
+    }
+
+    // Lấy 1 trang từ cursor; trang nằm ngoài số dòng hiện có thì trả rỗng.
+    // fetchPage báo lỗi nếu đọc quá dòng cuối, nên trang cuối chỉ lấy phần còn lại.
+    private static RecordPage fetchPage(Database.PaginationCursor cursor, Integer position, Integer pageSize) {
+        RecordPage p = new RecordPage();
+        p.total = cursor.getNumRecords();
+        if (position >= 0 && position < p.total) {
+            for (SObject row : cursor.fetchPage(position, Math.min(pageSize, p.total - position)).getRecords()) {
+                p.records.add((Return_Request__c) row);
+            }
+        }
+        return p;
+    }
+
+    // Sharing Set: Account của User = Account__c của yêu cầu
+    private with sharing class SharedWithMe {
+
+        public RecordPage page(Integer pageSize, Integer position) {
+            Database.PaginationCursor cursor = Database.getPaginationCursor(
+                'SELECT Id, Name, CreatedDate, Status__c, Estimated_Refund__c, Actual_Refund__c' +
+                ' FROM Return_Request__c ORDER BY CreatedDate DESC' + maxRows(), AccessLevel.USER_MODE);
+            return fetchPage(cursor, position, pageSize);
+        }
+
+        public Boolean contains(Id requestId) {
+            return ![SELECT Id FROM Return_Request__c WHERE Id = :requestId].isEmpty();
+        }
+    }
+}
