@@ -6,15 +6,15 @@
 public with sharing class SR_ReturnUiController {
 
     // D.1 bước 1–3: thông tin đơn và từng dòng sản phẩm, dòng nào bị khóa kèm lý do
-    @AuraEnabled(cacheable=true)
-    public static SR_DTO.ReturnableInfo getReturnableLines(Id orderId) {
-        try {
-            return SR_ReturnRequestService.getReturnableLines(orderId);
-        } catch (Exception e) {
-            //throw SR_Util.auraError(e);
-            throw e;
-        }
-    }
+    // @AuraEnabled(cacheable=true)
+    // public static SR_DTO.ReturnableInfo getReturnableLines(Id orderId) {
+    //     try {
+    //         return SR_ReturnRequestService.getReturnableLines(orderId);
+    //     } catch (Exception e) {
+    //         //throw SR_Util.auraError(e);
+    //         throw e;
+    //     }
+    // }
 
     // D.1 bước 4: tính trước tiền từng dòng, tổng tiền và cấp duyệt – không ghi dữ liệu
     // draftJson: { "orderId": "...", "lines": [ { "orderItemId", "quantity", "reason", "condition" } ] }
