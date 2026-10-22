@@ -15,7 +15,6 @@
     </brand>
     <description>SmartReturn – yêu cầu đổi trả: tạo tại quầy, duyệt, kiểm định, theo dõi hoàn tiền.</description>
     <formFactors>Small</formFactors>
-    <formFactors>Medium</formFactors>
     <formFactors>Large</formFactors>
     <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
     <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
