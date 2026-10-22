@@ -11,7 +11,8 @@ public with sharing class SR_ReturnUiController {
         try {
             return SR_ReturnRequestService.getReturnableLines(orderId);
         } catch (Exception e) {
-            throw SR_Util.auraError(e);
+            //throw SR_Util.auraError(e);
+            throw e;
         }
     }
 
@@ -22,7 +23,8 @@ public with sharing class SR_ReturnUiController {
         try {
             return SR_ApprovalService.previewLevel(toCounterRequest(draftJson));
         } catch (Exception e) {
-            throw SR_Util.auraError(e);
+            //throw SR_Util.auraError(e);
+            throw e;
         }
     }
 
@@ -33,7 +35,8 @@ public with sharing class SR_ReturnUiController {
             return SR_ReturnRequestService.createRequests(
                 new List<SR_DTO.CreateRequest>{ toCounterRequest(draftJson) })[0];
         } catch (Exception e) {
-            throw SR_Util.auraError(e);
+            //throw SR_Util.auraError(e);
+            throw e;
         }
     }
 

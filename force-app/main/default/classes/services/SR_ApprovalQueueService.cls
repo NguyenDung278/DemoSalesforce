@@ -93,7 +93,7 @@ public with sharing class SR_ApprovalQueueService {
         row.requestNumber = r.Name;
         row.customerName = r.Account__r?.Name;
         row.storeName = r.Store__r?.Name;
-        row.channel = SR_Util.picklistLabel(Return_Request__c.Channel__c, r.Channel__c);
+        //row.channel = SR_Util.picklistLabel(Return_Request__c.Channel__c, r.Channel__c);
         row.estimatedRefund = r.Estimated_Refund__c;
         row.approvalLevel = r.Approval_Level__c;
         row.approverName = r.Assigned_Approver__r?.Name;

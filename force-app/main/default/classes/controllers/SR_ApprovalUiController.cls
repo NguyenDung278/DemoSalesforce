@@ -11,7 +11,8 @@ public with sharing class SR_ApprovalUiController {
         try {
             return SR_ApprovalQueueService.getMyStores();
         } catch (Exception e) {
-            throw SR_Util.auraError(e);
+            //throw SR_Util.auraError(e);
+            throw e;
         }
     }
 
@@ -24,7 +25,8 @@ public with sharing class SR_ApprovalUiController {
                 : (SR_ApprovalQueueService.Filters) JSON.deserialize(filtersJson, SR_ApprovalQueueService.Filters.class);
             return SR_ApprovalQueueService.getQueue(f);
         } catch (Exception e) {
-            throw SR_Util.auraError(e);
+            //throw SR_Util.auraError(e);
+            throw e;
         }
     }
 
@@ -36,7 +38,8 @@ public with sharing class SR_ApprovalUiController {
                 (List<SR_DTO.DecisionItem>) JSON.deserialize(itemsJson, List<SR_DTO.DecisionItem>.class);
             return SR_ApprovalService.decide(items, approve, reason);
         } catch (Exception e) {
-            throw SR_Util.auraError(e);
+            //throw SR_Util.auraError(e);
+            throw e;
         }
     }
 }

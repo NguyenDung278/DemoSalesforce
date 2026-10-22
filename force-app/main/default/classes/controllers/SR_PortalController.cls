@@ -12,7 +12,8 @@ public with sharing class SR_PortalController {
         try {
             return SR_PortalService.lookup(requestNumber, phoneLast4);
         } catch (Exception e) {
-            throw SR_Util.auraError(e);
+            //throw SR_Util.auraError(e);
+            throw e;
         }
     }
 
@@ -22,7 +23,8 @@ public with sharing class SR_PortalController {
         try {
             return SR_PortalService.getMyRequests(pageSize, pageNumber);
         } catch (Exception e) {
-            throw SR_Util.auraError(e);
+            //throw SR_Util.auraError(e);
+            throw e;
         }
     }
 
@@ -31,7 +33,8 @@ public with sharing class SR_PortalController {
         try {
             return SR_PortalService.getMyRequestDetail(requestId);
         } catch (Exception e) {
-            throw SR_Util.auraError(e);
+            //throw SR_Util.auraError(e);
+            throw e;
         }
     }
 }
