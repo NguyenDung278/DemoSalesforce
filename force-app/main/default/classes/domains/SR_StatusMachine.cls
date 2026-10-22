@@ -1,5 +1,5 @@
 public with sharing class SR_StatusMachine {
-    public static final String NEW = 'NEW';
+    public static final String STATUS_NEW = 'NEW';
     public static final String PENDING_APPROVAL = 'PENDING_APPROVAL';
     public static final String AWAITING_GOODS = 'AWAITING_GOODS';
     public static final String INSPECTING = 'INSPECTING';
@@ -192,7 +192,7 @@ public with sharing class SR_StatusMachine {
 
     private static Map<String, Set<String>> buildTransitions() {
         Map<String, Set<String>> result = new Map<String, Set<String>>();
-        result.put(NEW, new Set<String>{
+        result.put(STATUS_NEW, new Set<String>{
             REJECTED, PENDING_APPROVAL, AWAITING_GOODS, INSPECTING, CANCELLED
         });
         result.put(PENDING_APPROVAL, new Set<String>{
@@ -229,5 +229,31 @@ public with sharing class SR_StatusMachine {
 
     private static String firstError(Database.Error[] errors) {
         return errors == null || errors.isEmpty() ? 'Unknown DML error.' : errors[0].getMessage();
+    }
+
+    public static String labelOf(String status) {
+        if (String.isBlank(status)) {
+            return status;
+        }
+
+        if (statusLabelsByValue == null) {
+            statusLabelsByValue = new Map<String, String>();
+
+            for (
+                Schema.PicklistEntry entry:
+                Return_Request__c.Status__c.getDescribe().getPicklistValues()
+            ) {
+                statusLabelsByValue.put(
+                    entry.getValue(),
+                    entry.getLabel()
+                );
+            }
+        }
+
+        String normalizedStatus = status.trim().toUpperCase();
+
+        return statusLabelsByValue.containsKey(normalizedStatus)
+            ? statusLabelsByValue.get(normalizedStatus)
+            : status;
     }
 }
