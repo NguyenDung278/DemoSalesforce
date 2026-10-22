@@ -206,16 +206,29 @@ jobs:
         run: |
           set -euo pipefail
 
+          echo "Current Salesforce project directory:"
+          pwd
+
+          if [! -f sfdx-project.json ]; then
+            echo "ERROR: sfdx-project.json was not found in:"
+            pwd
+
+            echo "Available files:"
+            ls -la
+
+            exit 1
+          fi
+
           HAS_PACKAGE=false
           HAS_DESTRUCTIVE=false
 
           if [ -f delta/package/package.xml ] &&
-             grep -q "<types>" delta/package/package.xml; then
+            grep -q "<types>" delta/package/package.xml; then
             HAS_PACKAGE=true
           fi
 
           if [ -f delta/destructiveChanges/destructiveChanges.xml ] &&
-             grep -q "<types>" delta/destructiveChanges/destructiveChanges.xml; then
+            grep -q "<types>" delta/destructiveChanges/destructiveChanges.xml; then
             HAS_DESTRUCTIVE=true
           fi
 
@@ -223,7 +236,7 @@ jobs:
           echo "Has destructive metadata: $HAS_DESTRUCTIVE"
 
           if [ "$HAS_PACKAGE" = "false" ] &&
-             [ "$HAS_DESTRUCTIVE" = "false" ]; then
+            [ "$HAS_DESTRUCTIVE" = "false" ]; then
             echo "No Salesforce metadata changes were found."
             exit 0
           fi
@@ -233,6 +246,13 @@ jobs:
           else
             MANIFEST="delta/destructiveChanges/package.xml"
           fi
+
+          if [! -f "$MANIFEST" ]; then
+            echo "ERROR: Deployment manifest was not found: $MANIFEST"
+            exit 1
+          fi
+
+          echo "Manifest selected: $MANIFEST"
 
           DEPLOY_COMMAND=(
             sf project deploy start
@@ -252,7 +272,6 @@ jobs:
 
           echo "Starting validation-only deployment."
           "${DEPLOY_COMMAND[@]}"
-
       ###############################################################
       # 12. Always remove temporary credentials
       ###############################################################
