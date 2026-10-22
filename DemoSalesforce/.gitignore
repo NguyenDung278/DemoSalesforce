@@ -53,3 +53,11 @@ $RECYCLE.BIN/
 
 # Claude Code
 .claude/
+
+# JWT private keys and certificates
+server.key
+server.pass.key
+server.csr
+server.crt
+*.pem
+*.key
