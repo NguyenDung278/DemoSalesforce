@@ -1,6 +1,5 @@
 /**
  * Selector cho Store__c. "inherited sharing": chạy theo sharing của class gọi.
- * Owner: Dev C
  */
 public inherited sharing class SR_StoreSelector {
 
@@ -9,6 +8,7 @@ public inherited sharing class SR_StoreSelector {
         return [
             SELECT Id, Name, Store_Code__c FROM Store__c
             WHERE Store_Manager__c = :userId OR Regional_Manager__c = :userId
+            WITH USER_MODE
             ORDER BY Store_Code__c
         ];
     }
