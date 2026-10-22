@@ -13,6 +13,11 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+    working-directory: ./DemoSalesforce
+
 concurrency:
   group: salesforce-validation-${{ github.event.pull_request.number }}
   cancel-in-progress: true
