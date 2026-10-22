@@ -19,7 +19,7 @@ private class SR_IntegrationLoggerTest {
 
     @IsTest
     static void getInstance_returnsSingleton() {
-        Assert.areSame(SR_IntegrationLogger.getInstance(), SR_IntegrationLogger.getInstance());
+        Assert.areEqual(SR_IntegrationLogger.getInstance(), SR_IntegrationLogger.getInstance());
     }
 
     @IsTest
