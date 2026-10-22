@@ -27,27 +27,27 @@ for (OrderItem oi : [
 }
 
 // Kênh POS: tự duyệt thì vào Inspecting (không bị job đêm hủy như Awaiting Goods của App)
-List<SR_DTO.CreateRequest> requests = new List<SR_DTO.CreateRequest>();
-for (List<Object> p : plan) {
-    OrderItem oi = lineOf.get((String) p[0] + '|' + (String) p[1]);
-    if (oi == null) {
-        throw new IllegalArgumentException('Không thấy đơn ' + (String) p[0] + ' – chạy seed 2 trước');
-    }
-    Map<String, Object> body = new Map<String, Object>{
-        'externalRequestId' => p[5],
-        'channel' => 'POS',
-        'orderId' => oi.OrderId,
-        'orderNumber' => oi.Order.OrderNumber,
-        'customerPhone' => oi.Order.Account.Phone,
-        'storeCode' => oi.Order.Store__r.Store_Code__c,
-        'lines' => new List<Object>{
-            new Map<String, Object>{
-                'orderItemId' => oi.Id, 'sku' => p[1], 'quantity' => p[2], 'reason' => p[3], 'condition' => p[4]
-            }
-        }
-    };
-    requests.add((SR_DTO.CreateRequest) JSON.deserialize(JSON.serialize(body), SR_DTO.CreateRequest.class));
-}
+// List<SR_DTO.CreateRequest> requests = new List<SR_DTO.CreateRequest>();
+// for (List<Object> p : plan) {
+//     OrderItem oi = lineOf.get((String) p[0] + '|' + (String) p[1]);
+//     if (oi == null) {
+//         throw new IllegalArgumentException('Không thấy đơn ' + (String) p[0] + ' – chạy seed 2 trước');
+//     }
+//     Map<String, Object> body = new Map<String, Object>{
+//         'externalRequestId' => p[5],
+//         'channel' => 'POS',
+//         'orderId' => oi.OrderId,
+//         'orderNumber' => oi.Order.OrderNumber,
+//         'customerPhone' => oi.Order.Account.Phone,
+//         'storeCode' => oi.Order.Store__r.Store_Code__c,
+//         'lines' => new List<Object>{
+//             new Map<String, Object>{
+//                 'orderItemId' => oi.Id, 'sku' => p[1], 'quantity' => p[2], 'reason' => p[3], 'condition' => p[4]
+//             }
+//         }
+//     };
+//     requests.add((SR_DTO.CreateRequest) JSON.deserialize(JSON.serialize(body), SR_DTO.CreateRequest.class));
+// }
 List<Object> results = SR_ReturnRequestService.createRequests(requests);
 for (Integer i = 0; i < results.size(); i++) {
     Map<String, Object> r = (Map<String, Object>) JSON.deserializeUntyped(JSON.serialize(results[i]));

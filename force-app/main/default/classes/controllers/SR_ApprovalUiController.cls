@@ -31,15 +31,15 @@ public with sharing class SR_ApprovalUiController {
     }
 
     // itemsJson: [ { "requestId": "...", "lastModified": "2026-10-19T02:03:04.000Z" } ]
-    @AuraEnabled
-    public static SR_DTO.DecisionResult decide(String itemsJson, Boolean approve, String reason) {
-        try {
-            List<SR_DTO.DecisionItem> items =
-                (List<SR_DTO.DecisionItem>) JSON.deserialize(itemsJson, List<SR_DTO.DecisionItem>.class);
-            return SR_ApprovalService.decide(items, approve, reason);
-        } catch (Exception e) {
-            //throw SR_Util.auraError(e);
-            throw e;
-        }
-    }
+    // @AuraEnabled
+    // public static SR_DTO.DecisionResult decide(String itemsJson, Boolean approve, String reason) {
+    //     try {
+    //         List<SR_DTO.DecisionItem> items =
+    //             (List<SR_DTO.DecisionItem>) JSON.deserialize(itemsJson, List<SR_DTO.DecisionItem>.class);
+    //         return SR_ApprovalService.decide(items, approve, reason);
+    //     } catch (Exception e) {
+    //         //throw SR_Util.auraError(e);
+    //         throw e;
+    //     }
+    // }
 }
