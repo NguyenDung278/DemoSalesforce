@@ -23,9 +23,13 @@ public with sharing class SR_RequestPageService {
     public class InspectionData {
         @AuraEnabled public String status;
         @AuraEnabled public Boolean canInspect = false;
+        @AuraEnabled public List<InspectionLine> lines = new List<InspectionLine>();
+    }
+
+    // Nút nào trên trang yêu cầu được hiện (LWC srRequestActions)
+    public class ActionState {
         @AuraEnabled public Boolean canReceiveGoods = false;
         @AuraEnabled public Boolean canCancel = false;
-        @AuraEnabled public List<InspectionLine> lines = new List<InspectionLine>();
     }
 
     public static InspectionData getInspectionData(Id requestId) {
@@ -33,12 +37,18 @@ public with sharing class SR_RequestPageService {
         InspectionData data = new InspectionData();
         data.status = r.Status__c;
         data.canInspect = SR_ReturnRequestDomain.canInspect(r, r.Return_Request_Lines__r);
-        data.canReceiveGoods = SR_ReturnRequestDomain.canReceiveGoods(r);
-        data.canCancel = SR_ReturnRequestDomain.canCancel(r);
         for (Return_Request_Line__c l : r.Return_Request_Lines__r) {
             data.lines.add(toLine(l));
         }
         return data;
+    }
+
+    public static ActionState getActionState(Id requestId) {
+        Return_Request__c r = SR_ReturnRequestSelector.selectById(requestId);
+        ActionState state = new ActionState();
+        state.canReceiveGoods = SR_ReturnRequestDomain.canReceiveGoods(r);
+        state.canCancel = SR_ReturnRequestDomain.canCancel(r);
+        return state;
     }
 
     // Đổi tình trạng thực tế → tiền dòng theo B.2, do hàm tính tiền của Dũng tính (không tính trong JS).

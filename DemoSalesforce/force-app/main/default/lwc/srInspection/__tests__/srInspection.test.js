@@ -12,10 +12,7 @@ jest.mock('@salesforce/apex/SR_ReturnUiController.calcLineRefund', () => ({ defa
 jest.mock('@salesforce/apex/SR_ReturnUiController.completeInspection', () => ({ default: jest.fn() }), {
     virtual: true
 });
-jest.mock('@salesforce/apex/SR_ReturnUiController.receiveGoods', () => ({ default: jest.fn() }), {
-    virtual: true
-});
-jest.mock('@salesforce/apex/SR_ReturnUiController.cancelRequest', () => ({ default: jest.fn() }), {
+jest.mock('@salesforce/label/c.SR_MSG_22', () => ({ default: 'Vui lòng ghi kết quả kiểm định cho tất cả sản phẩm.' }), {
     virtual: true
 });
 
@@ -23,8 +20,6 @@ const LINE_ID = 'a01000000000001AAA';
 const DATA = {
     status: 'INSPECTING',
     canInspect: true,
-    canReceiveGoods: false,
-    canCancel: false,
     lines: [
         {
             lineId: LINE_ID,
@@ -89,6 +84,31 @@ describe('c-sr-inspection', () => {
         expect(calcLineRefund).toHaveBeenCalledWith({ lineId: LINE_ID, actualCondition: 'USED' });
         expect(refundCell(element)).toBe('1.494.000');
         expect(actualTotal(element)).toBe('1.494.000đ');
+    });
+
+    it('còn dòng chưa có kết quả thì tắt nút Hoàn tất và nhắc MSG-22', async () => {
+        getInspectionData.mockResolvedValue(DATA);
+        const element = render();
+        await flushPromises();
+        const completeButton = () =>
+            [...element.shadowRoot.querySelectorAll('lightning-button')].find((b) => b.label === 'Hoàn tất kiểm định');
+        const hint = () => element.shadowRoot.querySelector('span.slds-text-color_weak');
+        expect(completeButton().disabled).toBe(true);
+        expect(hint().textContent).toBe('Vui lòng ghi kết quả kiểm định cho tất cả sản phẩm.');
+
+        element.shadowRoot
+            .querySelector('lightning-radio-group')
+            .dispatchEvent(new CustomEvent('change', { detail: { value: 'FAILED' } }));
+        await flushPromises();
+        expect(completeButton().disabled).toBe(false);
+        expect(hint()).toBeNull();
+    });
+
+    it('đã hoàn tất kiểm định thì ẩn hẳn component', async () => {
+        getInspectionData.mockResolvedValue({ ...DATA, canInspect: false });
+        const element = render();
+        await flushPromises();
+        expect(element.shadowRoot.querySelector('lightning-card')).toBeNull();
     });
 
     it('Apex tính tiền lỗi thì giữ lại tình trạng cũ', async () => {

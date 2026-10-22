@@ -2,13 +2,11 @@ import { LightningElement, api } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { notifyRecordUpdateAvailable } from 'lightning/uiRecordApi';
 import LightningConfirm from 'lightning/confirm';
-import LightningPrompt from 'lightning/prompt';
 import getInspectionData from '@salesforce/apex/SR_ReturnUiController.getInspectionData';
 import calcLineRefund from '@salesforce/apex/SR_ReturnUiController.calcLineRefund';
 import completeInspection from '@salesforce/apex/SR_ReturnUiController.completeInspection';
-import receiveGoods from '@salesforce/apex/SR_ReturnUiController.receiveGoods';
-import cancelRequest from '@salesforce/apex/SR_ReturnUiController.cancelRequest';
 import MSG_21 from '@salesforce/label/c.SR_MSG_21';
+import MSG_22 from '@salesforce/label/c.SR_MSG_22';
 import { REASON_OPTIONS, CONDITION_OPTIONS, labelOf, vnd, reduceErrors } from 'c/srUtils';
 
 const RESULT_OPTIONS = [
@@ -16,8 +14,9 @@ const RESULT_OPTIONS = [
     { label: 'Không đạt', value: 'FAILED' }
 ];
 
-// D.3 – Kiểm định hàng (FR-10) + nút Nhận hàng / Hủy. Đặt trên trang Return Request. Owner: Dev C
-// Tiền dòng luôn do Apex tính (calcLineRefund của Dũng); JS chỉ cộng các dòng Đạt để hiện tổng.
+// D.3 – Kiểm định hàng (FR-10). Đặt trên trang Return Request: trang chỉ hiện component khi Inspecting,
+// component tự ẩn khi đã hoàn tất kiểm định. Nút Nhận hàng / Hủy nằm ở srRequestActions. Owner: Dev C
+// Tiền dòng luôn do Apex tính (calcLineRefund của Đức); JS chỉ cộng các dòng Đạt để hiện tổng.
 export default class SrInspection extends LightningElement {
     @api recordId;
     data = {};
@@ -26,6 +25,7 @@ export default class SrInspection extends LightningElement {
     isBusy = false;
     resultOptions = RESULT_OPTIONS;
     conditionOptions = CONDITION_OPTIONS;
+    msg22 = MSG_22;
     calcSeq = 0; // số thứ tự lần tính tiền, để bỏ kết quả của lần gọi cũ
 
     connectedCallback() {
@@ -52,8 +52,18 @@ export default class SrInspection extends LightningElement {
         }
     }
 
+    // Đã hoàn tất kiểm định thì ẩn hẳn; đang tải hoặc lỗi thì vẫn hiện để người dùng biết
+    get isVisible() {
+        return this.isBusy || !!this.errorMessage || !!this.data.canInspect;
+    }
+
     get hasLines() {
         return this.lines.length > 0;
+    }
+
+    // MSG-22: còn dòng chưa chọn Đạt / Không đạt thì nút Hoàn tất bị tắt, hiện câu nhắc bên cạnh
+    get showResultHint() {
+        return !!this.data.canInspect && this.lines.some((l) => !l.result);
     }
 
     get readOnly() {
@@ -141,22 +151,6 @@ export default class SrInspection extends LightningElement {
         }));
         await this.run(() => completeInspection({ requestId: this.recordId, resultsJson: JSON.stringify(results) }),
             'Đã hoàn tất kiểm định');
-    }
-
-    async handleReceive() {
-        await this.run(() => receiveGoods({ requestId: this.recordId }), 'Đã nhận hàng, chuyển sang kiểm định');
-    }
-
-    async handleCancel() {
-        const reason = await LightningPrompt.open({
-            message: 'Nhập lý do hủy yêu cầu',
-            label: 'Hủy yêu cầu',
-            theme: 'warning'
-        });
-        if (!reason) {
-            return;
-        }
-        await this.run(() => cancelRequest({ requestId: this.recordId, reason }), 'Đã hủy yêu cầu');
     }
 
     // Gọi Apex, báo kết quả, tải lại dữ liệu và làm mới các component chuẩn trên trang

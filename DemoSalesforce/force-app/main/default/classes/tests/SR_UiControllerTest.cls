@@ -83,9 +83,9 @@ private class SR_UiControllerTest {
     @IsTest
     static void receiveAndCancelBlockedWhenInspecting() {
         Id requestId = createSmallCounterRequest();
-        SR_RequestPageService.InspectionData data = SR_ReturnUiController.getInspectionData(requestId);
-        Assert.isFalse(data.canReceiveGoods);
-        Assert.isFalse(data.canCancel);
+        SR_RequestPageService.ActionState state = SR_ReturnUiController.getActionState(requestId);
+        Assert.isFalse(state.canReceiveGoods);
+        Assert.isFalse(state.canCancel);
         String msg20Start = System.Label.SR_MSG_20.substringBefore('{0}');
         try {
             SR_ReturnUiController.receiveGoods(requestId);

@@ -73,6 +73,16 @@ public with sharing class SR_ReturnUiController {
         }
     }
 
+    // Nút Nhận hàng / Hủy nào được hiện theo trạng thái hiện tại
+    @AuraEnabled
+    public static SR_RequestPageService.ActionState getActionState(Id requestId) {
+        try {
+            return SR_RequestPageService.getActionState(requestId);
+        } catch (Exception e) {
+            throw SR_Util.auraError(e);
+        }
+    }
+
     // Awaiting Goods → Inspecting
     @AuraEnabled
     public static void receiveGoods(Id requestId) {
