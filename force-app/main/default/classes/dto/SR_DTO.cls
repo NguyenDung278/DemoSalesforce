@@ -149,6 +149,62 @@ public class SR_DTO {
         }
     }
 
+    public class ReturnableInfo {
+        @AuraEnabled
+        public Boolean success { get; set; }
+
+        @AuraEnabled
+        public Id orderId { get; set; }
+
+        @AuraEnabled
+        public String orderNumber { get; set; }
+
+        @AuraEnabled
+        public Id accountId { get; set; }
+
+        @AuraEnabled
+        public String customerName { get; set; }
+
+        @AuraEnabled
+        public String customerPhone { get; set; }
+
+        @AuraEnabled
+        public Date orderDate { get; set; }
+
+        @AuraEnabled
+        public Date deliveryDate { get; set; }
+
+        @AuraEnabled
+        public Id storeId { get; set; }
+
+        @AuraEnabled
+        public String storeCode { get; set; }
+
+        @AuraEnabled
+        public String storeName { get; set; }
+
+        @AuraEnabled
+        public List<ReturnableLineDTO> lines { get; set; }
+
+        @AuraEnabled
+        public String errorCode { get; set; }
+
+        @AuraEnabled
+        public String message { get; set; }
+
+        @AuraEnabled
+        public List<ErrorDetailDTO> details { get; set; }
+
+        @AuraEnabled
+        public String correlationId { get; set; }
+
+        public ReturnableInfo() {
+            success = false;
+            lines = new List<ReturnableLineDTO>();
+            details = new List<ErrorDetailDTO>();
+        }
+    }
+
     /*
      * ============================================================
      * RETURNABLE ORDER LINES
@@ -169,22 +225,45 @@ public class SR_DTO {
         public String productName { get; set; }
 
         @AuraEnabled
+        public String productFamily { get; set; }
+
+        @AuraEnabled
         public Decimal purchasedQuantity { get; set; }
 
+        /*
+        * Quantity on requests already COMPLETED.
+        */
         @AuraEnabled
         public Decimal returnedQuantity { get; set; }
 
+        /*
+        * Quantity on active requests:
+        * NEW, PENDING_APPROVAL, AWAITING_GOODS,
+        * INSPECTING, REFUND_PROCESSING, REFUND_FAILED.
+        */
         @AuraEnabled
         public Decimal pendingQuantity { get; set; }
 
+        /*
+        * returnedQuantity + pendingQuantity.
+        */
+        @AuraEnabled
+        public Decimal consumedQuantity { get; set; }
+
+        /*
+        * purchasedQuantity - consumedQuantity.
+        */
         @AuraEnabled
         public Decimal returnableQuantity { get; set; }
 
         @AuraEnabled
         public Decimal unitPrice { get; set; }
 
+        /*
+        * Delivery_Date__c, falling back to EffectiveDate.
+        */
         @AuraEnabled
-        public Date deliveredDate { get; set; }
+        public Date returnBaseDate { get; set; }
 
         @AuraEnabled
         public Date returnDeadline { get; set; }
@@ -199,6 +278,11 @@ public class SR_DTO {
         public String ineligibleReason { get; set; }
 
         public ReturnableLineDTO() {
+            purchasedQuantity = 0;
+            returnedQuantity = 0;
+            pendingQuantity = 0;
+            consumedQuantity = 0;
+            returnableQuantity = 0;
             eligible = false;
         }
     }

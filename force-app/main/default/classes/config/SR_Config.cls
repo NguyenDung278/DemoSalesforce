@@ -228,4 +228,95 @@ public with sharing class SR_Config {
     private static SR_ConfigurationException configurationError(String message) {
         return new SR_ConfigurationException(CONFIGURATION_ERROR, message);
     }
+
+    @TestVisible
+    private static Map<String, Decimal> refundRateByKey;
+
+    /**
+     * Trả về tỷ lệ ở dạng thập phân:
+     * 100% -> 1
+     * 80% -> 0.8
+     * 0% -> 0
+     */
+    public static Decimal getRefundRate(
+        String reason,
+        String condition
+    ) {
+        if (String.isBlank(reason) || String.isBlank(condition)) {
+            throw new IllegalArgumentException(
+                'Reason và condition không được để trống.'
+            );
+        }
+
+        loadRefundRates();
+
+        String key = buildRefundRateKey(reason, condition);
+
+        if (!refundRateByKey.containsKey(key)) {
+            throw new SR_ConfigurationException(
+                'Không tìm thấy cấu hình refund rate cho '
+                + 'reason='
+                + reason
+                + ', condition='
+                + condition
+            );
+        }
+
+        return refundRateByKey.get(key);
+    }
+
+    private static void loadRefundRates() {
+        if (refundRateByKey!= null) {
+            return;
+        }
+
+        refundRateByKey = new Map<String, Decimal>();
+
+        for (
+            SR_Refund_Rate__mdt metadataRecord:
+            SR_Refund_Rate__mdt.getAll().values()
+        ) {
+            if (
+                metadataRecord.Active__c!= true
+                || String.isBlank(metadataRecord.Reason__c)
+                || String.isBlank(metadataRecord.Condition__c)
+                || metadataRecord.Refund_Rate__c == null
+            ) {
+                continue;
+            }
+
+            String key = buildRefundRateKey(
+                metadataRecord.Reason__c,
+                metadataRecord.Condition__c
+            );
+
+            /*
+             * Salesforce Percent field trả về:
+             * 100% = 100
+             * 80% = 80
+             *
+             * Chuyển sang dạng decimal để tính:
+             * 100 -> 1
+             * 80 -> 0.8
+             */
+            refundRateByKey.put(
+                key,
+                metadataRecord.Refund_Rate__c / 100
+            );
+        }
+    }
+
+    private static String buildRefundRateKey(
+        String reason,
+        String condition
+    ) {
+        return reason.trim().toUpperCase()
+            + '|'
+            + condition.trim().toUpperCase();
+    }
+
+    @TestVisible
+    private static void resetCache() {
+        refundRateByKey = null;
+    }
 }

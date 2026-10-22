@@ -157,7 +157,7 @@ public with sharing class SR_StatusMachine {
                 if (!historyResults[i].isSuccess()) {
                     Integer resultIndex = validHistoryResultIndexes[i];
                     results[resultIndex] = failure(
-                        validHistories[i].Request__c,
+                        validHistories[i].Return_Request__c,
                         INVALID_VALUE,
                         firstError(historyResults[i].getErrors())
                     );
