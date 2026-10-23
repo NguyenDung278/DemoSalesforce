@@ -39,6 +39,8 @@ public with sharing class SR_Config {
 
     @TestVisible
     private static Provider provider = new MetadataProvider();
+    @TestVisible
+    private static Map<String, Object> overrides = new Map<String, Object>();
     private static SR_Setting__mdt settingCache;
     private static Map<String, CategoryPolicy> categoryCache;
     private static Map<String, Decimal> refundRateCache;
@@ -223,6 +225,28 @@ public with sharing class SR_Config {
 
     private static String normalize(String value) {
         return value == null ? null : value.trim().toUpperCase();
+    }
+
+    @TestVisible
+    private static void setOverride(Schema.SObjectField field, Object value) {
+        if (!Test.isRunningTest()) {
+            throw new SR_ConfigurationException('SR_Config.setOverride should only be used in tests.');
+        }
+        if (field == null) {
+            throw new SR_ConfigurationException('SR_Config.setOverride: field cannot be null.');
+        }
+        String fieldName = field.getDescribe().getName();
+        Schema.SObjectField known = SR_Setting__mdt.SObjectType.getDescribe().fields.getMap().get(fieldName.toLowerCase());
+        if (known == null || known != field) {
+            throw new SR_ConfigurationException('SR_Config.setOverride: ' + fieldName + ' is not in SR_Setting__mdt.');
+        }
+        overrides.put(fieldName, value);
+    }
+
+    @TestVisible
+    private static void clearOverrides() {
+        overrides.clear();
+        settingCache = null;
     }
 
     private static SR_ConfigurationException configurationError(String message) {
