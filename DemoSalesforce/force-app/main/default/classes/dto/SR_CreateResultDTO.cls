@@ -1,42 +1,24 @@
-public inherited sharing class SR_CreateResultDTO {
-    @AuraEnabled
-    public Boolean success { get; set; }
-
-    @AuraEnabled
-    public Boolean isDuplicate { get; set; }
-
-    @AuraEnabled
-    public Id requestId { get; set; }
-
-    @AuraEnabled
-    public String requestNumber { get; set; }
-
-    @AuraEnabled
-    public String status { get; set; }
-
-    @AuraEnabled
-    public String approvalLevel { get; set; }
-
-    @AuraEnabled
-    public Decimal estimatedRefund { get; set; }
-
-    @AuraEnabled
-    public List<SR_CreateLineResultDTO> lines { get; set; }
-
-    @AuraEnabled
-    public List<SR_ErrorDetailDTO> errors { get; set; }
-
-    @AuraEnabled
-    public String correlationId { get; set; }
-
-    @AuraEnabled
-    public String versionToken { get; set; }
+/**
+ * Per-item result for bulk createRequests processing.
+ * Partial success is supported unless the caller explicitly requests atomicMode.
+ */
+public with sharing class SR_CreateResultDTO {
+    @AuraEnabled public Boolean success;
+    @AuraEnabled public Boolean isDuplicate;
+    @AuraEnabled public Id requestId;
+    @AuraEnabled public String requestNumber;
+    @AuraEnabled public String status;
+    @AuraEnabled public String approvalLevel;
+    @AuraEnabled public Decimal estimatedRefund;
+    @AuraEnabled public List<SR_CreateLineResultDTO> lines;
+    @AuraEnabled public List<SR_ErrorDetailDTO> errors;
+    @AuraEnabled public String correlationId;
 
     public SR_CreateResultDTO() {
-        this.success = false;
-        this.isDuplicate = false;
-        this.estimatedRefund = 0;
-        this.lines = new List<SR_CreateLineResultDTO>();
-        this.errors = new List<SR_ErrorDetailDTO>();
+        success = false;
+        isDuplicate = false;
+        estimatedRefund = 0;
+        lines = new List<SR_CreateLineResultDTO>();
+        errors = new List<SR_ErrorDetailDTO>();
     }
 }
