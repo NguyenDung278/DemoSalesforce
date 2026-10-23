@@ -23,6 +23,8 @@ public with sharing class SR_RequestPageService {
     public class InspectionData {
         @AuraEnabled public String status;
         @AuraEnabled public Boolean canInspect = false;
+        @AuraEnabled public Boolean unauthorized = false; // khách portal lỡ vào trang nội bộ
+        @AuraEnabled public String portalUrl;             // nút "Về trang Portal" khi unauthorized
         @AuraEnabled public List<InspectionLine> lines = new List<InspectionLine>();
     }
 
@@ -32,9 +34,29 @@ public with sharing class SR_RequestPageService {
         @AuraEnabled public Boolean canCancel = false;
     }
 
+    // Trang yêu cầu chỉ dành cho nhân viên nội bộ; test đổi giá trị này để giả lập khách portal
+    @TestVisible private static String userType = UserInfo.getUserType();
+
+    public static Boolean isInternalUser() {
+        return userType == 'Standard';
+    }
+
+    // Chặn cả khi khách gọi thẳng Apex mà không qua trang
+    public static void requireInternalUser() {
+        if (!isInternalUser()) {
+            throw auraException(System.Label.SR_ERR_UNAUTHORIZED);
+        }
+    }
+
     public static InspectionData getInspectionData(Id requestId) {
-        Return_Request__c r = SR_ReturnRequestSelector.selectForInspection(requestId);
         InspectionData data = new InspectionData();
+        // Khách lỡ vào trang: không đọc bản ghi, chỉ báo để LWC hiện Unauthorized và nút về Portal
+        if (!isInternalUser()) {
+            data.unauthorized = true;
+            data.portalUrl = System.Label.SR_Portal_Url;
+            return data;
+        }
+        Return_Request__c r = SR_ReturnRequestSelector.selectForInspection(requestId);
         data.status = r.Status__c;
         data.canInspect = SR_ReturnRequestDomain.canInspect(r, r.Return_Request_Lines__r);
         for (Return_Request_Line__c l : r.Return_Request_Lines__r) {
@@ -44,8 +66,11 @@ public with sharing class SR_RequestPageService {
     }
 
     public static ActionState getActionState(Id requestId) {
-        Return_Request__c r = SR_ReturnRequestSelector.selectById(requestId);
         ActionState state = new ActionState();
+        if (!isInternalUser()) {
+            return state; // khách portal: không hiện nút nào
+        }
+        Return_Request__c r = SR_ReturnRequestSelector.selectById(requestId);
         state.canReceiveGoods = SR_ReturnRequestDomain.canReceiveGoods(r);
         state.canCancel = SR_ReturnRequestDomain.canCancel(r);
         return state;
@@ -54,12 +79,14 @@ public with sharing class SR_RequestPageService {
     // Đổi tình trạng thực tế → tiền dòng theo B.2, do hàm tính tiền của Dũng tính (không tính trong JS).
     // Chữ ký theo DUNG-04 ("ví dụ calcLineRefund"); Dũng chốt tên khác thì chỉ sửa dòng này.
     public static Decimal calcLineRefund(Id lineId, String actualCondition) {
+        requireInternalUser();
         Return_Request_Line__c l = SR_ReturnRequestLineSelector.selectById(lineId);
         return SR_ReturnRequestService.calcLineRefund(l.Unit_Price__c, l.Quantity__c, l.Reason__c, actualCondition);
     }
 
     // Nhận hàng: Awaiting Goods → Inspecting
     public static void receiveGoods(Id requestId) {
+        requireInternalUser();
         Return_Request__c r = SR_ReturnRequestSelector.selectById(requestId);
         if (!SR_ReturnRequestDomain.canReceiveGoods(r)) {
             throw invalidTransition(r, SR_ReturnRequestDomain.STATUS_INSPECTING);
@@ -69,6 +96,7 @@ public with sharing class SR_RequestPageService {
 
     // Hủy từ New / Pending Approval / Awaiting Goods; lý do ghi vào lịch sử trạng thái
     public static void cancel(Id requestId, String reason) {
+        requireInternalUser();
         Return_Request__c r = SR_ReturnRequestSelector.selectById(requestId);
         if (!SR_ReturnRequestDomain.canCancel(r)) {
             throw invalidTransition(r, SR_ReturnRequestDomain.STATUS_CANCELLED);
@@ -98,9 +126,13 @@ public with sharing class SR_RequestPageService {
 
     // MSG-20: trang đã cũ (người khác vừa đổi trạng thái) thì báo luôn, không gọi state machine
     private static AuraHandledException invalidTransition(Return_Request__c r, String toStatus) {
-        String message = String.format(System.Label.SR_MSG_20, new List<Object>{
+        return auraException(String.format(System.Label.SR_MSG_20, new List<Object>{
             SR_StatusMachine.labelOf(r.Status__c), SR_StatusMachine.labelOf(toStatus)
-        });
+        }));
+    }
+
+    // setMessage để getMessage() trả đúng câu báo thay vì "Script-thrown exception"
+    private static AuraHandledException auraException(String message) {
         AuraHandledException e = new AuraHandledException(message);
         e.setMessage(message);
         return e;

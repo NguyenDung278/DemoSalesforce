@@ -66,6 +66,7 @@ public with sharing class SR_ReturnUiController {
     @AuraEnabled
     public static void completeInspection(Id requestId, String resultsJson) {
         try {
+            SR_RequestPageService.requireInternalUser();
             SR_InspectionService.complete(
                 requestId, (List<SR_DTO.LineResult>) JSON.deserialize(resultsJson, List<SR_DTO.LineResult>.class));
         } catch (Exception e) {

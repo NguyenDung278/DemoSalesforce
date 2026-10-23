@@ -2,6 +2,17 @@
     <template lwc:if={isVisible}>
         <lightning-card title="Kiểm định hàng trả" icon-name="standard:task">
             <div class="slds-p-horizontal_medium">
+                <!-- Khách portal lỡ vào trang nội bộ: báo Unauthorized, có nút về Portal -->
+                <template lwc:if={data.unauthorized}>
+                    <p class="slds-text-color_error slds-m-bottom_small">{unauthorizedMessage}</p>
+                    <template lwc:if={data.portalUrl}>
+                        <lightning-button
+                            variant="brand"
+                            label="Về trang Portal"
+                            onclick={handleBackToPortal}
+                        ></lightning-button>
+                    </template>
+                </template>
                 <template lwc:if={errorMessage}>
                     <p class="slds-text-color_error slds-m-bottom_small">{errorMessage}</p>
                 </template>

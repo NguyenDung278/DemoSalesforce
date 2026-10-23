@@ -12,7 +12,20 @@ jest.mock('@salesforce/apex/SR_ReturnUiController.calcLineRefund', () => ({ defa
 jest.mock('@salesforce/apex/SR_ReturnUiController.completeInspection', () => ({ default: jest.fn() }), {
     virtual: true
 });
-jest.mock('@salesforce/label/c.SR_MSG_22', () => ({ default: 'Vui lòng ghi kết quả kiểm định cho tất cả sản phẩm.' }), {
+// Stub mặc định của lightning/navigation không ghi lại lần điều hướng nên tự giả lập để kiểm tra nút về Portal
+const mockNavigate = jest.fn();
+jest.mock('lightning/navigation', () => {
+    const Navigate = Symbol('Navigate');
+    const NavigationMixin = (Base) =>
+        class extends Base {
+            [Navigate](pageReference, replace) {
+                mockNavigate(pageReference, replace);
+            }
+        };
+    NavigationMixin.Navigate = Navigate;
+    return { NavigationMixin };
+});
+jest.mock('@salesforce/label/c.SR_MSG_22',() => ({ default: 'Vui lòng ghi kết quả kiểm định cho tất cả sản phẩm.' }), {
     virtual: true
 });
 
@@ -109,6 +122,22 @@ describe('c-sr-inspection', () => {
         const element = render();
         await flushPromises();
         expect(element.shadowRoot.querySelector('lightning-card')).toBeNull();
+    });
+
+    it('khách portal lỡ vào trang thì báo Unauthorized và có nút về Portal', async () => {
+        const portalUrl = 'https://example.my.site.com/doitra/';
+        getInspectionData.mockResolvedValue({ unauthorized: true, canInspect: false, portalUrl, lines: [] });
+        const element = render();
+        await flushPromises();
+        expect(element.shadowRoot.querySelector('p.slds-text-color_error').textContent).toBe(
+            'c.SR_ERR_UNAUTHORIZED'
+        );
+        expect(element.shadowRoot.querySelector('table')).toBeNull();
+
+        const backButton = element.shadowRoot.querySelector('lightning-button');
+        expect(backButton.label).toBe('Về trang Portal');
+        backButton.click();
+        expect(mockNavigate).toHaveBeenCalledWith({ type: 'standard__webPage', attributes: { url: portalUrl } }, true);
     });
 
     it('Apex tính tiền lỗi thì giữ lại tình trạng cũ', async () => {

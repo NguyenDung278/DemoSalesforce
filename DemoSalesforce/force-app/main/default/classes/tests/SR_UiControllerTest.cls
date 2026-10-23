@@ -117,6 +117,35 @@ private class SR_UiControllerTest {
         }
     }
 
+    // Khách portal lỡ vào trang yêu cầu: không trả dữ liệu, báo Unauthorized kèm link Portal; gọi thẳng Apex cũng bị chặn
+    @IsTest
+    static void portalUserIsUnauthorized() {
+        Id requestId = createSmallCounterRequest();
+        SR_RequestPageService.userType = 'PowerCustomerSuccess';
+
+        SR_RequestPageService.InspectionData data = SR_ReturnUiController.getInspectionData(requestId);
+        Assert.isTrue(data.unauthorized);
+        Assert.isFalse(data.canInspect);
+        Assert.isTrue(data.lines.isEmpty());
+        Assert.areEqual(System.Label.SR_Portal_Url, data.portalUrl);
+
+        SR_RequestPageService.ActionState state = SR_ReturnUiController.getActionState(requestId);
+        Assert.isFalse(state.canReceiveGoods || state.canCancel);
+
+        try {
+            SR_ReturnUiController.completeInspection(requestId, '[]');
+            Assert.fail('Khách portal không được hoàn tất kiểm định');
+        } catch (AuraHandledException e) {
+            Assert.areEqual(System.Label.SR_ERR_UNAUTHORIZED, e.getMessage());
+        }
+        try {
+            SR_ReturnUiController.receiveGoods(requestId);
+            Assert.fail('Khách portal không được nhận hàng');
+        } catch (AuraHandledException e) {
+            Assert.areEqual(System.Label.SR_ERR_UNAUTHORIZED, e.getMessage());
+        }
+    }
+
     // D.2: QLV (user chạy test) thấy yêu cầu 25tr trong hàng chờ và duyệt được
     @IsTest
     static void approvalQueueListsAndApproves() {

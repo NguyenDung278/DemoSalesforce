@@ -1,4 +1,5 @@
 import { LightningElement, api } from 'lwc';
+import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { notifyRecordUpdateAvailable } from 'lightning/uiRecordApi';
 import LightningConfirm from 'lightning/confirm';
@@ -7,6 +8,7 @@ import calcLineRefund from '@salesforce/apex/SR_ReturnUiController.calcLineRefun
 import completeInspection from '@salesforce/apex/SR_ReturnUiController.completeInspection';
 import MSG_21 from '@salesforce/label/c.SR_MSG_21';
 import MSG_22 from '@salesforce/label/c.SR_MSG_22';
+import ERR_UNAUTHORIZED from '@salesforce/label/c.SR_ERR_UNAUTHORIZED';
 import { REASON_OPTIONS, CONDITION_OPTIONS, labelOf, vnd, reduceErrors } from 'c/srUtils';
 
 const RESULT_OPTIONS = [
@@ -17,7 +19,8 @@ const RESULT_OPTIONS = [
 // D.3 – Kiểm định hàng (FR-10). Đặt trên trang Return Request: trang chỉ hiện component khi Inspecting,
 // component tự ẩn khi đã hoàn tất kiểm định. Nút Nhận hàng / Hủy nằm ở srRequestActions. Owner: Dev C
 // Tiền dòng luôn do Apex tính (calcLineRefund của Đức); JS chỉ cộng các dòng Đạt để hiện tổng.
-export default class SrInspection extends LightningElement {
+// Khách portal lỡ vào trang: Apex trả unauthorized, component báo không có quyền và cho về Portal.
+export default class SrInspection extends NavigationMixin(LightningElement) {
     @api recordId;
     data = {};
     lines = [];
@@ -26,6 +29,7 @@ export default class SrInspection extends LightningElement {
     resultOptions = RESULT_OPTIONS;
     conditionOptions = CONDITION_OPTIONS;
     msg22 = MSG_22;
+    unauthorizedMessage = ERR_UNAUTHORIZED;
     calcSeq = 0; // số thứ tự lần tính tiền, để bỏ kết quả của lần gọi cũ
 
     connectedCallback() {
@@ -52,9 +56,13 @@ export default class SrInspection extends LightningElement {
         }
     }
 
-    // Đã hoàn tất kiểm định thì ẩn hẳn; đang tải hoặc lỗi thì vẫn hiện để người dùng biết
+    // Đã hoàn tất kiểm định thì ẩn hẳn; đang tải, lỗi hoặc không có quyền thì vẫn hiện để người dùng biết
     get isVisible() {
-        return this.isBusy || !!this.errorMessage || !!this.data.canInspect;
+        return this.isBusy || !!this.errorMessage || !!this.data.unauthorized || !!this.data.canInspect;
+    }
+
+    handleBackToPortal() {
+        this[NavigationMixin.Navigate]({ type: 'standard__webPage', attributes: { url: this.data.portalUrl } }, true);
     }
 
     get hasLines() {
