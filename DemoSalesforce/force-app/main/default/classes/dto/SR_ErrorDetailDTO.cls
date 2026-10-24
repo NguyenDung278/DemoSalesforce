@@ -23,4 +23,12 @@ public with sharing class SR_ErrorDetailDTO {
         this.code = code;
         this.params = params == null ? new List<String>() : params;
     }
+
+    public SR_ErrorDetailDTO(String sku, String code, String message) {
+        this.sku = sku;
+        this.reference = sku;
+        this.code = code;
+        this.params = new List<String>();
+        this.message = message;
+    }
 }

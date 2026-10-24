@@ -50,6 +50,7 @@ $RECYCLE.BIN/
 # Custom Objects and Static Resources are included in the package.xml file, so we can ignore them in the .gitignore file.
 **/objects/
 **/staticresources/
+**/globalValueSets/**
 
 # Claude Code
 .claude/

@@ -15,6 +15,8 @@ public with sharing class SR_ErrorCode {
     public static final String ORDER_NOT_FOUND = 'ORDER_NOT_FOUND';
     public static final String REQUEST_NOT_FOUND = 'REQUEST_NOT_FOUND';
     public static final String INTERNAL_ERROR = 'INTERNAL_ERROR';
+    public static final String CONFIGURATION_ERROR = 'CONFIGURATION_ERROR';
+    public static final String VALIDATION_FAILED = 'VALIDATION_FAILED';
 
     public static final Integer HTTP_BAD_REQUEST = 400;
     public static final Integer HTTP_NOT_FOUND = 404;
@@ -29,9 +31,12 @@ public with sharing class SR_ErrorCode {
         SKU_NOT_IN_ORDER,
         ORDER_NOT_FOUND,
         REQUEST_NOT_FOUND,
-        INTERNAL_ERROR
+        INTERNAL_ERROR,
+        CONFIGURATION_ERROR,
+        VALIDATION_FAILED
     };
 
+    //TO-DO: missing the map section for another 
     private static final Map<String, String> MESSAGE_KEYS = new Map<String, String>{
         NOT_RETURNABLE => 'SR_MSG_03',
         RETURN_WINDOW_EXPIRED => 'SR_MSG_02',
@@ -50,7 +55,9 @@ public with sharing class SR_ErrorCode {
             SKU_NOT_IN_ORDER => HTTP_BAD_REQUEST,
             ORDER_NOT_FOUND => HTTP_NOT_FOUND,
             REQUEST_NOT_FOUND => HTTP_NOT_FOUND,
-            INTERNAL_ERROR => HTTP_INTERNAL_SERVER_ERROR
+            INTERNAL_ERROR => HTTP_INTERNAL_SERVER_ERROR,
+            CONFIGURATION_ERROR => HTTP_INTERNAL_SERVER_ERROR,
+            VALIDATION_FAILED => HTTP_BAD_REQUEST
         };
 
     private SR_ErrorCode() {
@@ -63,6 +70,26 @@ public with sharing class SR_ErrorCode {
     public static String getMessageKey(String code) {
         validateCode(code);
         return MESSAGE_KEYS.get(code);
+    }
+
+    public static String message(String code) {
+        String key = getMessageKey(code);
+        if (key == 'SR_MSG_02') {
+            return System.Label.SR_MSG_02;
+        }
+        if (key == 'SR_MSG_03') {
+            return System.Label.SR_MSG_03;
+        }
+        if (key == 'SR_MSG_04') {
+            return System.Label.SR_MSG_04;
+        }
+        if (key == 'SR_ERR_ORDER_NOT_FOUND') {
+            return System.Label.SR_ERR_ORDER_NOT_FOUND;
+        }
+        if (key == 'SR_MSG_90') {
+            return System.Label.SR_MSG_90;
+        }
+        return code;
     }
 
     public static Integer getHttpStatus(String code) {

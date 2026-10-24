@@ -12,7 +12,7 @@ public with sharing class SR_ApprovalService {
             out.approvalLevel = 'QLV';
             out.assignedApproverId = store == null ? null : store.Regional_Manager__c;
             out.targetStatus = 'PENDING_APPROVAL';
-        } else if (SR_Config.enableAutoApproval() && amount <= SR_Config.autoApprovalThreshold()) {
+        } else if (SR_Config.isAutoApprovalEnabled() && amount <= SR_Config.autoApprovalThreshold()) {
             out.approvalLevel = 'AUTO';
             out.targetStatus = input != null && input.channel == 'APP' ? 'AWAITING_GOODS' : 'INSPECTING';
         } else {

@@ -42,8 +42,8 @@ public inherited sharing class SR_ReturnRequestSelector {
     public static Return_Request__c selectPortalDetail(Id requestId) {
         return [
             SELECT Id, Name, Status__c,
-                   (SELECT Id, Product__r.Name, Quantity__c FROM Lines__r ORDER BY Name),
-                   (SELECT Id, To_Status__c, Changed_At__c FROM Histories__r ORDER BY Changed_At__c, Name)
+                   (SELECT Id, Product__r.Name, Quantity__c FROM Return_Request_Lines__r ORDER BY Name),
+                   (SELECT Id, To_Status__c, Changed_At__c FROM Return_Request_Histories__r ORDER BY Changed_At__c, Name)
             FROM Return_Request__c WHERE Id = :requestId
         ];
     }
@@ -119,5 +119,62 @@ public inherited sharing class SR_ReturnRequestSelector {
         public Boolean contains(Id requestId) {
             return ![SELECT Id FROM Return_Request__c WHERE Id = :requestId].isEmpty();
         }
+    }
+
+    public static Map<Id, Decimal> sumReservedQuantity(Set<Id> orderItemIds) {
+        Map<Id, Decimal> result = new Map<Id, Decimal>();
+        if (orderItemIds == null || orderItemIds.isEmpty()) return result;
+        for (AggregateResult ar : [
+            SELECT Order_Product__c orderItemId, SUM(Quantity__c) qty
+            FROM Return_Request_Line__c
+            WHERE Order_Product__c IN :orderItemIds
+              AND Return_Request__r.Status__c NOT IN ('REJECTED', 'CANCELLED')
+            GROUP BY Order_Product__c
+        ]) result.put((Id) ar.get('orderItemId'), (Decimal) ar.get('qty'));
+        return result;
+    }
+
+    public class RiskAggregate {
+        public Integer requestCount;
+        public Decimal totalAmount;
+    }
+
+    public static Map<String, Return_Request__c> selectByExternalIds(Set<String> externalIds) {
+        Map<String, Return_Request__c> result = new Map<String, Return_Request__c>();
+        if (externalIds == null || externalIds.isEmpty()) {
+            return result;
+        }
+        for (Return_Request__c row : [
+            SELECT Id, Name, Status__c, Approval_Level__c, Estimated_Refund__c, External_Request_Id__c,
+                (SELECT Id, Order_Product__c, Product__r.ProductCode, Quantity__c,
+                        Unit_Price__c, Refund_Rate__c, Estimated_Refund__c
+                 FROM Return_Request_Lines__r)
+            FROM Return_Request__c
+            WHERE External_Request_Id__c IN :externalIds
+        ]) {
+            result.put(row.External_Request_Id__c, row);
+        }
+        return result;
+    }
+
+    public static Map<Id, RiskAggregate> aggregateRisk(Set<Id> accountIds, Datetime since) {
+        Map<Id, RiskAggregate> result = new Map<Id, RiskAggregate>();
+        if (accountIds == null || accountIds.isEmpty()) {
+            return result;
+        }
+        for (AggregateResult ar : [
+            SELECT Account__c accountId, COUNT(Id) requestCount, SUM(Estimated_Refund__c) totalAmount
+            FROM Return_Request__c
+            WHERE Account__c IN :accountIds
+              AND Status__c != 'CANCELLED'
+              AND CreatedDate >= :since
+            GROUP BY Account__c
+        ]) {
+            RiskAggregate aggregate = new RiskAggregate();
+            aggregate.requestCount = (Integer) ar.get('requestCount');
+            aggregate.totalAmount = (Decimal) ar.get('totalAmount');
+            result.put((Id) ar.get('accountId'), aggregate);
+        }
+        return result;
     }
 }

@@ -1,14 +1,4 @@
 /**
- * Factory dữ liệu test dùng chung cho SmartReturn (DUC-03, Phần 3, dòng 40-42 sheet Task).
- *
- * Cả nhóm (Dũng, Đạt, Đức) dùng chung factory này trong mọi test class.
- *
- *  Dòng 40 – hàm tạo dữ liệu:
- *    Store kèm CHT và QLV · user theo từng vai trò (gán permission set nếu đã tồn tại) · Account có SĐT ·
- *    Product2 đủ 6 ngành hàng + PricebookEntry · Order + OrderItem (ngày giao tùy chọn, có loại không ngày giao) ·
- *    yêu cầu đổi trả (kèm dòng) ở trạng thái bất kỳ.
- *  Dòng 41 – ghi đè cấu hình cho test qua SR_Config: overrideConfig() / resetConfig().
- *
  * Quy ước:
  *  - Mọi hàm tạo hàng loạt dùng 1 DML cho mỗi object; không có SOQL/DML trong vòng lặp.
  *  - Factory không chứa nghiệp vụ (không tự tính tiền hoàn, không định tuyến duyệt): giá trị đến từ tham số.
@@ -686,5 +676,40 @@ public with sharing class SR_TestDataFactory {
     /** Bỏ mọi giá trị ghi đè; tham số quay về giá trị trong Custom Metadata. */
     public static void resetConfig() {
         SR_Config.clearOverrides();
+        SR_Config.setCategoryPolicyOverrides(null);
+        SR_Config.setRefundRateOverrides(null);
+        SR_Config.clearCache();
+    }
+
+    /**
+     * Cấu hình tối thiểu để test DUC-04 không phụ thuộc bản ghi Custom Metadata trên org.
+     */
+    public static void seedSmartReturnTestConfig() {
+        SR_Config.setCategoryPolicyOverrides(new Map<String, SR_CategoryPolicy>{
+            FAMILY_PHONE => new SR_CategoryPolicy(FAMILY_PHONE, true, 30, true),
+            FAMILY_LAPTOP => new SR_CategoryPolicy(FAMILY_LAPTOP, true, 30, true),
+            FAMILY_APPLIANCE => new SR_CategoryPolicy(FAMILY_APPLIANCE, true, 7, true),
+            FAMILY_ACCESSORY => new SR_CategoryPolicy(FAMILY_ACCESSORY, true, 7, true),
+            FAMILY_PREPAID => new SR_CategoryPolicy(FAMILY_PREPAID, false, 0, true),
+            FAMILY_SOFTWARE => new SR_CategoryPolicy(FAMILY_SOFTWARE, false, 0, true)
+        });
+        SR_Config.setRefundRateOverrides(new Map<String, Decimal>{
+            'DEFECT|SEALED' => 100,
+            'WRONG_ITEM|SEALED' => 100,
+            'NOT_SATISFIED|OPENED' => 80,
+            'CUSTOMER_DAMAGE|USED' => 0
+        });
+        overrideConfig(SR_Setting__mdt.Auto_Approval_Threshold__c, 2000000);
+        overrideConfig(SR_Setting__mdt.Store_Manager_Max_Threshold__c, 20000000);
+        overrideConfig(SR_Setting__mdt.Risk_Request_Count__c, 3);
+        overrideConfig(SR_Setting__mdt.Risk_Total_Amount__c, 30000000);
+        overrideConfig(SR_Setting__mdt.Risk_Window_Days__c, 30);
+        overrideConfig(SR_Setting__mdt.Approval_SLA_Hours__c, 24);
+        overrideConfig(SR_Setting__mdt.Goods_Due_Days__c, 7);
+        overrideConfig(SR_Setting__mdt.PayHub_Timeout_Seconds__c, 10);
+        overrideConfig(SR_Setting__mdt.PayHub_Max_Total_Attempts__c, 3);
+        overrideConfig(SR_Setting__mdt.PayHub_Retry_Interval_Minutes__c, 15);
+        overrideConfig(SR_Setting__mdt.Enable_Auto_Approval__c, true);
+        overrideConfig(SR_Setting__mdt.Enable_PayHub__c, true);
     }
 }

@@ -41,8 +41,13 @@ public with sharing class SR_Config {
     private static Provider provider = new MetadataProvider();
     @TestVisible
     private static Map<String, Object> overrides = new Map<String, Object>();
+    @TestVisible
+    private static Map<String, SR_CategoryPolicy> categoryOverrides;
+    @TestVisible
+    private static Map<String, Decimal> refundRateOverrides;
     private static SR_Setting__mdt settingCache;
     private static Map<String, CategoryPolicy> categoryCache;
+    private static Map<String, SR_CategoryPolicy> domainCategoryCache;
     private static Map<String, Decimal> refundRateCache;
 
     public static Decimal autoApprovalThreshold() {
@@ -113,14 +118,53 @@ public with sharing class SR_Config {
         if (String.isBlank(reason) || String.isBlank(condition)) {
             throw configurationError('Reason and condition are required.');
         }
-        loadRefundRates();
         String key = compositeKey(reason, condition);
+        if (refundRateOverrides != null && refundRateOverrides.containsKey(key)) {
+            return refundRateOverrides.get(key);
+        }
+        loadRefundRates();
         if (!refundRateCache.containsKey(key)) {
             throw configurationError(
                 'No active refund rate for reason/condition: ' + reason + '/' + condition
             );
         }
         return refundRateCache.get(key);
+    }
+
+    public static Decimal getRefundRate(String reason, String condition) {
+        try {
+            return refundRate(reason, condition);
+        } catch (SR_ConfigurationException ex) {
+            return null;
+        }
+    }
+
+    public static SR_CategoryPolicy getCategoryPolicy(String family) {
+        if (String.isBlank(family)) {
+            return null;
+        }
+        String key = normalize(family);
+        if (categoryOverrides != null) {
+            if (categoryOverrides.containsKey(family)) {
+                return categoryOverrides.get(family);
+            }
+            if (categoryOverrides.containsKey(key)) {
+                return categoryOverrides.get(key);
+            }
+        }
+        loadDomainCategoryPolicies();
+        return domainCategoryCache.get(key);
+    }
+
+    @TestVisible
+    static void setCategoryPolicyOverrides(Map<String, SR_CategoryPolicy> policies) {
+        categoryOverrides = policies;
+    }
+
+    @TestVisible
+    static void setRefundRateOverrides(Map<String, Decimal> rates) {
+        refundRateOverrides = rates;
+        refundRateCache = null;
     }
 
     @TestVisible
@@ -142,15 +186,28 @@ public with sharing class SR_Config {
     static void clearCache() {
         settingCache = null;
         categoryCache = null;
+        domainCategoryCache = null;
         refundRateCache = null;
     }
 
     public static SR_Setting__mdt setting() {
         if (settingCache == null) {
-            settingCache = provider.getSetting(DEFAULT_SETTING);
+            settingCache = applySettingOverrides(provider.getSetting(DEFAULT_SETTING));
             validateSetting(settingCache);
         }
         return settingCache;
+    }
+
+    private static SR_Setting__mdt applySettingOverrides(SR_Setting__mdt source) {
+        if (overrides == null || overrides.isEmpty()) {
+            return source;
+        }
+        Map<String, Object> raw = source == null
+            ? new Map<String, Object>()
+            : (Map<String, Object>) JSON.deserializeUntyped(JSON.serialize(source));
+        raw.putAll(overrides);
+        raw.put('attributes', new Map<String, Object>{ 'type' => 'SR_Setting__mdt' });
+        return (SR_Setting__mdt) JSON.deserialize(JSON.serialize(raw), SR_Setting__mdt.class);
     }
 
     private static void validateSetting(SR_Setting__mdt value) {
@@ -193,6 +250,27 @@ public with sharing class SR_Config {
                 );
             }
             categoryCache.put(normalize(item.Product_Family__c), new CategoryPolicy(item));
+        }
+    }
+
+    private static void loadDomainCategoryPolicies() {
+        if (domainCategoryCache != null) {
+            return;
+        }
+        domainCategoryCache = new Map<String, SR_CategoryPolicy>();
+        for (SR_Category_Policy__mdt item : provider.getCategoryPolicies().values()) {
+            if (String.isBlank(item.Product_Family__c)) {
+                continue;
+            }
+            domainCategoryCache.put(
+                normalize(item.Product_Family__c),
+                new SR_CategoryPolicy(
+                    item.Product_Family__c,
+                    item.Is_Returnable__c,
+                    item.Return_Window_Days__c == null ? null : item.Return_Window_Days__c.intValue(),
+                    item.Active__c
+                )
+            );
         }
     }
 
@@ -241,6 +319,7 @@ public with sharing class SR_Config {
             throw new SR_ConfigurationException('SR_Config.setOverride: ' + fieldName + ' is not in SR_Setting__mdt.');
         }
         overrides.put(fieldName, value);
+        settingCache = null;
     }
 
     @TestVisible
